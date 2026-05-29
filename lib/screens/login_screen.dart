@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'signup_screen.dart';
+import 'auth/sign_up_screen.dart';
 import 'main_scaffold.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -134,10 +134,10 @@ class LoginScreen extends StatelessWidget {
                       children: [
                         Text("Don't have an account? ", style: TextStyle(color: Colors.grey.shade600)),
                         GestureDetector(
-                          onTap: () {
+                            onTap: () {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (_) => const SignupScreen()),
+                              MaterialPageRoute(builder: (_) => const SignUpScreen()),
                             );
                           },
                           child: const Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold)),

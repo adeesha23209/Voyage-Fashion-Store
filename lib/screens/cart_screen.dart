@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/cart_item.dart';
+import '../services/cart_service.dart';
 import 'checkout_screen.dart';
+
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final cartService = context.watch<CartService>();
+    final items = cartService.items;
+
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -13,108 +20,103 @@ class CartScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             child: Row(
               children: [
-                const Icon(Icons.arrow_back_ios, size: 20),
+                const Icon(Icons.shopping_bag_outlined, size: 20),
                 const SizedBox(width: 8),
                 const Text(
                   'Cart',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
+                const Spacer(),
+                Text(
+                  '${cartService.totalItems} items',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
               ],
             ),
           ),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                const Text('My Cart List', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 16),
-                _buildCartItem(
-                  'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=200&h=200&fit=crop',
-                  'Casual Shoes',
-                  'LKR 3,850',
-                  1,
-                ),
-                _buildCartItem(
-                  'https://images.unsplash.com/photo-1618244972963-dbee1a7edc95?w=200&h=200&fit=crop',
-                  'Women Crop Top',
-                  'LKR 2,990',
-                  1,
-                ),
-                _buildCartItem(
-                  'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=200&h=200&fit=crop',
-                  'New York Black Cap',
-                  'LKR 3,000',
-                  1,
-                ),
-                const SizedBox(height: 24),
-                const Text('Apply Coupon', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Enter Coupon Code',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            child: items.isEmpty
+                ? const Center(
+                    child: Text('Your cart is empty.', style: TextStyle(fontSize: 16)),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    children: [
+                      const Text('My Cart List', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 16),
+                      ...items.map((item) => _buildCartItem(context, item)).toList(),
+                      const SizedBox(height: 24),
+                      const Text('Apply Coupon', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Enter Coupon Code',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                            onPressed: () {},
+                            child: const Text('Apply'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Text('Payment Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 16),
+                      _buildSummaryRow('Sub Total', 'LKR ${cartService.subTotal.toStringAsFixed(0)}'),
+                      const SizedBox(height: 8),
+                      _buildSummaryRow('Shipping Fee', 'LKR ${cartService.shippingFee.toStringAsFixed(0)}'),
+                      const Divider(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Total Pay', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text('LKR ${cartService.total.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          ),
+                          onPressed: items.isEmpty
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                                  );
+                                },
+                          child: const Text('Checkout', style: TextStyle(fontSize: 16)),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      ),
-                      onPressed: () {},
-                      child: const Text('Apply'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                const Text('Payment Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 16),
-                _buildSummaryRow('Sub Total', 'LKR 9,840'),
-                const SizedBox(height: 8),
-                _buildSummaryRow('Shipping Fee', 'LKR 350'),
-                const Divider(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text('Total Pay', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('LKR 10,190', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CheckoutScreen()),
-                      );
-                    },
-                    child: const Text('Checkout', style: TextStyle(fontSize: 16)),
+                      const SizedBox(height: 100),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 100),
-              ],
-            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCartItem(String imageUrl, String title, String price, int qty) {
+  Widget _buildCartItem(BuildContext context, CartItem item) {
+    final cartService = context.read<CartService>();
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
@@ -133,12 +135,19 @@ class CartScreen extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              imageUrl,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
+            child: item.imageUrl.startsWith('http')
+                ? Image.network(
+                    item.imageUrl,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  )
+                : Image.asset(
+                    item.imageUrl.isNotEmpty ? item.imageUrl : 'assets/images/product_1.png',
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -148,15 +157,20 @@ class CartScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    const Icon(Icons.delete_outline, color: Colors.grey, size: 20),
+                    Expanded(
+                      child: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    ),
+                    GestureDetector(
+                      onTap: () => cartService.removeItem(item.id, item.size),
+                      child: const Icon(Icons.delete_outline, color: Colors.grey, size: 20),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(price, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                    Text('LKR ${item.totalPrice.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -165,11 +179,21 @@ class CartScreen extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.remove, size: 16),
+                          GestureDetector(
+                            onTap: () {
+                              if (item.quantity > 1) {
+                                cartService.updateQuantity(item.id, item.size, item.quantity - 1);
+                              }
+                            },
+                            child: const Icon(Icons.remove, size: 16),
+                          ),
                           const SizedBox(width: 8),
-                          Text('$qty', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(width: 8),
-                          const Icon(Icons.add, size: 16),
+                          GestureDetector(
+                            onTap: () => cartService.updateQuantity(item.id, item.size, item.quantity + 1),
+                            child: const Icon(Icons.add, size: 16),
+                          ),
                         ],
                       ),
                     ),
